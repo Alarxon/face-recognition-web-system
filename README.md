@@ -50,6 +50,7 @@ Give the project the right permissions.
 * [flask](https://flask.palletsprojects.com/en/1.1.x/) - Flask site
 * [opencv](https://opencv.org/) - OpenCV menu site
 
-
+## Acknowledgments
+Base in a chatbot made by [Allan Perez](https://gitlab.com/AHPC1993/chatbot_con_reconocimientofacial)
 
 
