@@ -1,0 +1,51 @@
+{% extends 'layout.html' %}
+
+{% block title %}Accesos{% endblock %}
+
+{% block content %}
+<head>
+<style>
+#tabla {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#tabla td, #tabla th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+#tabla tr:nth-child(even){background-color: #f2f2f2;}
+
+#tabla tr:hover {background-color: #ddd;}
+
+#tabla th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #4CAF50;
+  color: white;
+}
+</style>
+</head>
+<h2>Accesos exitosos al sistema</h2>
+<div>
+    <p>Los detalles de los accesos:</p>
+    <form action="{{ url_for('accesos') }}" method="post">
+        <p>Selecciona la opcion de mostrar por rango o mostrar todos.<p>
+        <label for="inicial">Rango inicial (exclusivo):</label>
+        <input type="date" id="inicial" name="inicial">
+        <label for="final">Rango final (exclusivo):</label>
+        <input type="date" id="final" name="final"><br>
+        <input type="submit" value="Mostrar por rango" name="rango" id="rango" style="color: white; background-color: #4CAF50; padding: 16px 32px; margin: 4px 2px;"> 
+        <input type="submit" value="Mostrar todos" name="todos" id="todos" style="color: white; background-color: #7f0000; padding: 16px 32px; margin: 4px 2px;"> 
+    </form> 
+    <form action="{{ url_for('download') }}" method="post" align="right">
+        <input type="submit" value="Descargar CSV" name="csv" id="csv" style="color: white; background-color: #4CAF50; padding: 16px 32px; margin: 4px 2px;float: right;"> 
+    </form> 
+    <table id="tabla">
+        {{ tabla|safe }}
+    </table>
+</div>
+{% endblock %}

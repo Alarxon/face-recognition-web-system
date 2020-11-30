@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h2>Home Page</h2>
+<p>Bienvenido, {{ username }}!</p>
+<form action="{{ url_for('reconocimiento') }}" method="post">
+	<input type="submit" value="Reconocimiento facial" style="display: block;
+    width: 100%;
+    border: none;
+    background-color: #2f3947;
+    padding: 14px 28px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+	color: white;
+    margin-bottom: 25px;">
+</form>
+<form action="{{ url_for('agregar') }}" method="post">
+	<input type="submit" value="Agregar fotos a detectar" style="display: block;
+    width: 100%;
+    border: none;
+    background-color: #2f3947;
+    padding: 14px 28px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+	color: white;
+    margin-bottom: 25px;">
+</form>
+<form action="{{ url_for('accesos') }}" method="post">
+	<input type="submit" value="Ver accesos" style="display: block;
+    width: 100%;
+    border: none;
+    background-color: #2f3947;
+    padding: 14px 28px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+	color: white;
+    margin-bottom: 25px;">
+</form>
+{% endblock %}
+
