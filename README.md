@@ -43,12 +43,13 @@ http://yourlocalip:5000/pythonlogin/
 ## Deployment
 This system was only tested in Ubuntu 20.04. In windows can cause errors.
 Give the project the right permissions.
+The SQL Script is in the proyect. Don't forget to change database information in Flask scripts.
 
 ## Built With
 
 * [python](https://www.python.org/) - Python site
 * [flask](https://flask.palletsprojects.com/en/1.1.x/) - Flask site
-* [opencv](https://opencv.org/) - OpenCV menu site
+* [opencv](https://opencv.org/) - OpenCV site
 
 ## Acknowledgments
 Base in a chatbot made by [Allan Perez](https://gitlab.com/AHPC1993/chatbot_con_reconocimientofacial)
