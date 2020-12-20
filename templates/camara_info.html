@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+
+{% block title %}Camara informacion{% endblock %}
+
+{% block content %}
+<html>
+  <head>
+    <title>INFORMACION DE LA CAMARA</title>
+  </head>
+  <div>
+    <body>
+        <h1>Informacion de la camara</h1>
+        <p>Instrucciones:</p>
+        <table>
+        <tr>
+            <td>Campos</td>
+            <td>Seleccione un nombre para la camara<br>
+            </td>
+        </tr>
+       </table>
+        <form action="{{ url_for('camara_info') }}" method="post">
+            <label for="nombre">Nombre de la camara:</label>
+            <input type="text" value="{{ camara }}"" style="border-style: solid; border-color: #4CAF50;" id="nombre" name="nombre" placeholder="Nombre de la camara" pattern="[A-Za-z0-9-_ ]+"><br><br>
+            <div class="msg" id="msg" style="text-align: center; font-weight: bold;">{{ msg }}</div>
+            <input type="submit" onclick="mensajeAgregar()" value="Agregar informacion" name="agregar" id="agregar" style="color: white; background-color: #4CAF50; padding: 16px 32px; margin: 4px 2px;"> 
+        </form> 
+
+        <script>
+          function mensajeAgregar() {
+            document.getElementById("msg").innerHTML = "Actualizando datos";
+          }
+        </script>
+    </body>
+  </div>
+</html>
+{% endblock %}

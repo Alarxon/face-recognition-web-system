@@ -17,12 +17,10 @@ detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
 
 embedder = cv2.dnn.readNetFromTorch("openface_nn4.small2.v1.t7")
 
-recognizer = pickle.loads(open("output/recognizer.pickle", "rb").read())
-le = pickle.loads(open("output/le.pickle", "rb").read())
-
 ds_factor=0.6
 
-flag = 0
+dic_tiempos = {}
+
 
 class VideoCamera(object):
     def __init__(self):
@@ -30,12 +28,19 @@ class VideoCamera(object):
        self.video = VideoStream(src=0).start()
        time.sleep(2.0)
        self.fps = FPS().start()
+       self.camara_nombre = ""
 
     def __del__(self):
         #releasing camera
         self.fps.stop()
         self.video.stop()
 
+    def read_data(self):
+        self.recognizer = pickle.loads(open("output/recognizer.pickle", "rb").read())
+        self.le = pickle.loads(open("output/le.pickle", "rb").read())
+
+    def set_nombre(self, nombre):
+        self.camara_nombre = nombre
 
     def get_frame(self):
         
@@ -80,47 +85,55 @@ class VideoCamera(object):
                 vec = embedder.forward()
 
 			    # perform classification to recognize the face
-                preds = recognizer.predict_proba(vec)[0]
+                preds = self.recognizer.predict_proba(vec)[0]
                 j = np.argmax(preds)
                 proba = preds[j]
-                name = le.classes_[j]
+                name = self.le.classes_[j]
+
+                global dic_tiempos
+                if name in dic_tiempos:
+                    if dic_tiempos[name] == 60:
+                        dic_tiempos[name] = 0            
 
 			    # draw the bounding box of the face along with the
 			    # associated probability
-                text = "{}: {:.2f}%".format(name, proba * 100)
-                y = startY - 10 if startY - 10 > 10 else startY + 10
-                cv2.rectangle(frame, (startX, startY), (endX, endY),
-                    (0, 0, 255), 2)
-                cv2.putText(frame, text, (startX, y),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+                if proba >= 0.8:
+                    if name not in dic_tiempos:
+                        dic_tiempos[name] = 0
+                    text = "Bienvenido " + name
+                    y = startY - 10 if startY - 10 > 10 else startY + 10
+                    cv2.rectangle(frame, (startX, startY), (endX, endY),
+                        (0, 255, 0), 2)
+                    cv2.putText(frame, text, (startX, y),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 2)
+                    
+                    if dic_tiempos[name] == 0:
+                        print("SE GUARDO " + name)
+                        mydb = mysql.connector.connect(
+                            host="127.0.0.1",
+                            user="sergio",
+                            password="12345",
+                            database="sistema"
+                        )
+                        mycursor = mydb.cursor()
+                        sql = "INSERT INTO entradas (nombre,camara) VALUES (%s,%s)"
+                        val = (str(name),str(self.camara_nombre))
+                        mycursor.execute(sql, val)
+                        mydb.commit()
+                        dic_tiempos[name] = dic_tiempos[name] + 1
+                else:
+                    text = "{}: {:.2f}%".format(name, proba * 100)
+                    y = startY - 10 if startY - 10 > 10 else startY + 10
+                    cv2.rectangle(frame, (startX, startY), (endX, endY),
+                        (0, 0, 255), 2)
+                    cv2.putText(frame, text, (startX, y),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+                
+                if name in dic_tiempos:
+                    if dic_tiempos[name] >= 1:
+                        dic_tiempos[name] = dic_tiempos[name] + 1
         
         self.fps.update()
-
-        global flag
-        if flag == 1:
-            time.sleep(3.0)
-
-        flag = 0
-        if proba >= 0.9:
-            flag = 1
-            text = "Bienvenido " + name
-            cv2.rectangle(frame, (0, 0), (600, 600),
-                    (50, 205, 50), -1)
-            cv2.putText(frame, text, (100, 100),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 2)
-            mydb = mysql.connector.connect(
-                host="127.0.0.1",
-                user="sergio",
-                password="12345",
-                database="sistema"
-            )
-            mycursor = mydb.cursor()
-            sql = "INSERT INTO entradas (nombre) VALUES (%s)"
-            val = (name,)
-            mycursor.execute(sql, val)
-            mydb.commit()
-
-
 
         # encode OpenCV raw frame to jpg and displaying it
         ret,jpeg = cv2.imencode('.jpg', frame)

@@ -15,7 +15,7 @@
         <tr>
             <td>Agregar nuevo usuario</td>
             <td>1.-Colocar en el campo "Nombre del usuario" el nombre del usuario. EJemplo: Juan Perez Hernandez<br>
-                2.-Colocar en el campo "Nombre de la carpeta" el nombre que llevara la carpeta del usuario. Ejemplo: juan_perez<br>
+                2.-Colocar en el campo "Nombre de la carpeta" el nombre que llevara la carpeta del usuario, SIN ESPACIOS, NI ACENTOS. Ejemplo: juan_perez<br>
                 3.-Dar click en el boton "Browse" y seleccionar las fotos a subir (se recomienda minimo 20 fotos del usuario)<br>
                 4.-Dar click en el boton "Agregar usuario"<br>
             </td>
@@ -23,7 +23,8 @@
         <tr>
             <td>Aprendizaje</td>
             <td>Despues de agregar un usuario se debe de activar el Aprendizaje del sistema. <br>
-                Para activar el Aprendizaje solo se debe de dar al boton "Aprender"<br>
+                Para activar el Aprendizaje solo se debe de dar al boton "Aprender" y esperar<br>
+                Para aprender debes de tener minimo 2 carpetas en el dataset<br>
                 En cualquier momento se puede activar el aprendizaje, no es necesario agregar un nuevo usuario para activar el boton<br>
             </td>
         </tr>
@@ -34,11 +35,20 @@
             <label for="carpeta">Nombre de la carpeta:</label>
             <input type="text" style="border-style: solid; border-color: #4CAF50;" id="carpeta" name="carpeta" placeholder="Nombre de la carpeta" pattern="[A-Za-z0-9-_]+"><br><br>
             <label for="fotos[]">Selecionar fotos:</label>
-            <input type="file" id="fotos[]" name="fotos[]" multiple><br><br>
-            <div class="msg" style="text-align: center; font-weight: bold;">{{ msg }}</div>
-            <input type="submit" value="Agregar usuario" name="agregar" id="agregar" style="color: white; background-color: #4CAF50; padding: 16px 32px; margin: 4px 2px;"> 
-            <input type="submit" value="Aprender" name="aprender" id="aprender" style="color: white; background-color: #7f0000; padding: 16px 32px; margin: 4px 2px;"> 
+            <input type="file" id="fotos[]" required name="fotos[]" multiple><br><br>
+            <div class="msg" id="msg" style="text-align: center; font-weight: bold;">{{ msg }}</div>
+            <input type="submit" onclick="mensajeAgregar()" value="Agregar usuario" name="agregar" id="agregar" style="color: white; background-color: #4CAF50; padding: 16px 32px; margin: 4px 2px;"> 
+            <input type="submit" onclick="mensajeAprender()" value="Aprender" name="aprender" id="aprender" style="color: white; background-color: #7f0000; padding: 16px 32px; margin: 4px 2px;"> 
         </form> 
+
+        <script>
+          function mensajeAgregar() {
+            document.getElementById("msg").innerHTML = "Espere mientras se suben las fotos...";
+          }
+          function mensajeAprender() {
+            document.getElementById("msg").innerHTML = "Espere mientras se procesan los datos...";
+          }
+        </script>
     </body>
   </div>
 </html>

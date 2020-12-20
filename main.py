@@ -3,6 +3,7 @@ from flask import Flask, flash, render_template, Response, request, redirect, ur
 from camera import VideoCamera
 from flask_mysqldb import MySQL
 from train_model import entrenar_sistema
+from extract_embeddings import extraer
 from werkzeug.utils import secure_filename
 import MySQLdb.cursors
 import re
@@ -31,14 +32,17 @@ app.config['UPLOADED_FILES'] = 'dataset'
 
 data = []
 
+camara_nombre = "Camara"
+
 @app.route('/pythonlogin/', methods=['GET', 'POST'])
 def login():
     msg = ''
     # Check if "username" and "password" POST requests exist (user submitted form)
-    if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
+    if request.method == 'POST' and 'username' in request.form and 'password' in request.form and "camara" in request.form:
         # Create variables for easy access
         username = request.form['username']
         password = request.form['password']
+        camara = request.form["camara"]
 
         # Check if account exists using MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -52,6 +56,10 @@ def login():
             session['loggedin'] = True
             session['id'] = usuario['id']
             session['username'] = usuario['username']
+            session['camara'] = camara
+
+            global camara_nombre
+            camara_nombre = camara
             # Redirect to home page
             return redirect(url_for('home'))
         else:
@@ -67,6 +75,7 @@ def logout():
    session.pop('loggedin', None)
    session.pop('id', None)
    session.pop('username', None)
+   session.pop('camara', None)
    # Redirect to login page
    return redirect(url_for('login'))
 
@@ -97,7 +106,7 @@ def reconocimiento():
     # rendering webpage
     if 'loggedin' in session:
         if request.method == 'POST':
-            return render_template('reconocimiento.html')
+            return render_template('reconocimiento.html', camara = session['camara'])
     return redirect(url_for('login'))
 
 @app.route('/pythonlogin/agregar', methods=['GET', 'POST'])
@@ -110,6 +119,8 @@ def agregar():
                 uploaded_files = request.files.getlist('fotos[]')
                 task_name = request.form.get('carpeta')
                 nombre_completo = request.form.get('nombre')
+                
+                task_name = task_name.replace(" ", "_")
 
                 cursor2 = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
                 cursor2.execute('SELECT url FROM imagenes WHERE url = %s', (task_name,))
@@ -135,7 +146,8 @@ def agregar():
             except:
                 msg = "Error de subida.",sys.exc_info()[0]
         elif request.method == 'POST' and 'aprender' in request.form:
-            msg = entrenar_sistema()
+            msg = extraer()
+            msg = msg + entrenar_sistema()
         return render_template('agregar.html', msg=msg)
     return redirect(url_for('login'))
 
@@ -146,35 +158,38 @@ def accesos():
         global data
         tabla = """<tr>
             <th>Nombre</th>
-            <th>Fecha</th> 
+            <th>Fecha</th>
+            <th>Camara</th> 
             </tr>"""
         if request.method == 'POST' and 'inicial' in request.form and 'final' in request.form and 'rango' in request.form:
             inicial = request.form.get('inicial')
             final = request.form.get('final')
             
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            cursor.execute('select imagenes.nombre, entradas.fecha from imagenes, entradas where imagenes.url = entradas.nombre and entradas.fecha between %s and %s;', (inicial,final))
+            cursor.execute('select imagenes.nombre, entradas.fecha, entradas.camara from imagenes, entradas where imagenes.url = entradas.nombre and entradas.fecha between %s and %s;', (inicial,final))
             datos = cursor.fetchall()
 
-            data = [["Nombre","Fecha"]]
+            data = [["Nombre","Fecha","Camara"]]
 
             for dato in datos:
                 nombre = dato['nombre']
                 fecha = dato['fecha']
-                data.append([str(nombre),str(fecha)])
-                tabla = tabla + "<tr> <td>" + str(nombre) + "</td> <td>" + str(fecha) + "</td> </tr>"
+                camara = dato['camara']
+                data.append([str(nombre),str(fecha),str(camara)])
+                tabla = tabla + "<tr> <td>" + str(nombre) + "</td> <td>" + str(fecha) + "</td> <td>" + str(camara) + "</td> </tr>"
         elif request.method == 'POST' and 'todos' in request.form:
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            cursor.execute('select imagenes.nombre, entradas.fecha from imagenes, entradas where imagenes.url = entradas.nombre;')
+            cursor.execute('select imagenes.nombre, entradas.fecha, entradas.camara from imagenes, entradas where imagenes.url = entradas.nombre;')
             datos = cursor.fetchall()
 
-            data = [["Nombre","Fecha"]]
+            data = [["Nombre","Fecha","Camara"]]
 
             for dato in datos:
                 nombre = dato['nombre']
                 fecha = dato['fecha']
+                camara = dato['camara']
                 data.append([str(nombre),str(fecha)])
-                tabla = tabla + "<tr> <td>" + str(nombre) + "</td> <td>" + str(fecha) + "</td> </tr>"
+                tabla = tabla + "<tr> <td>" + str(nombre) + "</td> <td>" + str(fecha) + "</td> <td>" + str(camara) + "</td> </tr>"
         return render_template('accesos.html', tabla=tabla)
     return redirect(url_for('login'))
 
@@ -189,7 +204,9 @@ def download():
         output.headers["Content-type"] = "text/csv"
         return output
 
-def gen(camera):
+def gen(camera,nombre):
+    camera.read_data()
+    camera.set_nombre(nombre)
     while True:
         #get camera frame
         frame = camera.get_frame()
@@ -198,7 +215,7 @@ def gen(camera):
 
 @app.route('/video_feed')
 def video_feed():
-    return Response(gen(VideoCamera()),mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(gen(VideoCamera(),session['camara']),mimetype='multipart/x-mixed-replace; boundary=frame')
     
 if __name__ == '__main__':
     # defining server ip address and port
